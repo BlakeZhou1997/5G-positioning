@@ -1,0 +1,83 @@
+clear all
+close all
+ 
+tic;
+%number of antenna elements
+L = 6;
+ 
+%half wavelength spacing
+spacing = 0.5;      
+ 
+%number of sources
+Ns = 1;
+ 
+% direction of arrivals
+dire1 = 30;
+w1 = 2*pi*spacing*sin(dire1*pi/180);
+ 
+% Array matrix
+a1 = exp(-j * w1 * [0:L-1]');
+A = [a1];
+ 
+% Number of samples
+Nsam = 50;
+ 
+% Generating source samples
+s1 = randn(1,Nsam);
+S = [s1];
+ 
+% Generating noise
+snr = 20;
+noise_variance = 10^(-snr/10);
+noise = sqrt(noise_variance/2) * (randn(L,Nsam)+j*randn(L,Nsam));
+ 
+% Received signal
+x = A * S + noise;
+ 
+% Calculating The covariance matrix of the received signal
+N=size(x,2);
+Rx=zeros(L,L);
+for k1=1:L
+    for k2=1:L
+        Rx(k1,k2)=(1/N)*sum(x(k1,:).*conj(x(k2,:)));
+    end
+end
+ 
+% Eigenvalue decomposition and sorting
+[E,Lambda]=eig(Rx);
+lam_vec = zeros(1,L);
+ 
+for k = 1:L;
+    lam_vec(k) = real(Lambda(k,k));
+end
+[lam_vec,Ind]=sort(lam_vec,'descend');
+Lambda_I = diag(lam_vec);
+ 
+E_I=zeros(L,L);
+for k=1:L
+    E_I(:,k) = E(:,Ind(k));
+end
+ 
+% Costructing the noise subspace
+En=[];
+for q=Ns+1:L
+    En=[En,E_I(:,q)];
+end
+ 
+% Finding zeros of polynomial, choose the closest to the unit circle
+C=En*En';
+for k=(L-1):-1:-(L-1)
+P(L-k)=sum(diag(C,k));
+end
+r=roots(P)
+[R,ind]=min(abs(abs(r)-1));
+%obtain the direction of arrival 
+theta=180*asin(-angle(r(ind))/2/pi/spacing)/pi
+toc
+ 
+subplot(2,1,1)
+zplane(P,1)
+subplot(2,1,2)
+theta=180*asin(-angle(r)/2/pi/spacing)/pi;
+stem(theta,abs(r))
+grid

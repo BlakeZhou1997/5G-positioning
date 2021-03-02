@@ -1,0 +1,40 @@
+MATLAB codes for Example 1.
+
+% This program sketches the beampattern and calculates HPBW
+clear all;close all;
+d=90*pi/180;step=0.001;
+% y=d/Lamda;
+%p = antenna distance/wavelength
+p=2;
+N=6;
+l=0;
+%M(1)=0;
+for x=-d:step:d;
+   s=round(1+(x+d)*(1/step));
+   M(s)=2*pi*p*sin(x);
+   
+   if M(s)~=0;
+      y(s)=abs((sin((N/2)*M(s)))/(N*sin(M(s)/2)));
+   else
+      y(s)=1;
+   end
+   
+   h(s)=1/(2^0.5);
+ 
+   % to calculate HPBW
+   if s>1;
+       if (h(s)-y(s))*(h(s-1)-y(s-1))<0;
+           l=l+1;
+           phi(l)=x;
+       end
+   end
+   
+end
+ 
+HPBW=abs(phi(2)-phi(1))*180/pi
+ 
+k=1*180/pi;
+i=[-d:step:d]*k;
+plot(i,y);hold on;
+plot(i,h,'.');
+grid;

@@ -1,0 +1,57 @@
+
+%  main
+
+rng = [0    4.2500    6.9031    6.8031         0         0;
+    4.2500     0         0         0        5.1052    5.5052 ];
+
+Anchors = [0,0; 0,10; 10,10; 10,0];  
+
+save testdata rng Anchors
+
+[xest, error] =  lsqnonlin(@squareerror, zeros(4,1));
+
+
+% squareerror
+
+function [ s ] = squareerror( x );
+
+% determines the square error of the positions of x
+
+N = length(x)/2;
+
+load testdata
+
+s = 0;
+
+k=0;
+
+Na = size(Anchors,1);
+
+for i=1:Na
+    
+  for j=1:N
+        
+   if rng(j,i+N)
+
+     k = k + 1;
+
+     s(k) = (rng(j,i+N)-norm(x((j-1)*N+1:(j-1)*N+2)'-Anchors(i,:)));
+
+   end
+
+  end
+    
+end
+
+for i=1:N
+
+   for j=i+1:N
+
+      k = k+1;
+
+      s(k) = (rng(i,j)-norm(x((i-1)*N+1:(i-1)*N+2)'-x((j-1)*N+1:(j-1)*N+2)'));
+
+   end
+
+end
+
